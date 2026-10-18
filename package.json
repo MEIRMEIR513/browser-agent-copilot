@@ -1,0 +1,29 @@
+{
+  "name": "browser-agent-playwright",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k \"npm:server:dev\" \"npm:client:dev\"",
+    "server:dev": "node --watch server/index.js",
+    "client:dev": "vite",
+    "build": "vite build",
+    "start": "node server/index.js",
+    "setup:browser": "node server/setup-browser.js",
+    "cli": "node server/cli.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@sparticuz/chromium": "138.0.2",
+    "express": "^4.21.2",
+    "playwright": "1.53.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "ws": "^8.18.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.4.1",
+    "concurrently": "^9.1.2",
+    "vite": "^6.3.5"
+  }
+}
