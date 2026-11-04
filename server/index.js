@@ -25,6 +25,49 @@ app.post("/api/models", async (req, res) => {
   }
 });
 
+// GitHub OAuth endpoints
+app.get("/auth/github", (req, res) => {
+  if (!GITHUB_CLIENT_ID) {
+    return res.status(500).json({ error: "GitHub OAuth not configured. Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET environment variables." });
+  }
+  const state = Math.random().toString(36).substring(2, 15);
+  const authUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(OAUTH_CALLBACK_URL)}&scope=read:org&state=${state}`;
+  res.json({ authUrl, state });
+});
+
+app.get("/auth/callback", async (req, res) => {
+  const { code, state } = req.query;
+  if (!code) {
+    return res.status(400).json({ error: "No code provided" });
+  }
+
+  try {
+    const response = await fetch("https://github.com/login/oauth/access_token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        client_id: GITHUB_CLIENT_ID,
+        client_secret: GITHUB_CLIENT_SECRET,
+        code,
+      }),
+    });
+
+    const data = await response.json();
+    if (data.error) {
+      return res.status(400).json({ error: data.error_description || data.error });
+    }
+
+    const token = data.access_token;
+    // Return the token to the client (in production, this should be stored securely)
+    res.redirect(`/?token=${token}`);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 if (process.env.NODE_ENV === "production") {
   const dist = path.resolve(root, "..", "dist");
   app.use(express.static(dist));
@@ -64,7 +107,7 @@ socketServer.on("connection", (ws) => {
     }
     if (message.type === "configure") {
       const apiKey = resolveApiKey(message.provider, message.apiKey);
-      if (!["github", "gemini", "groq"].includes(message.provider) || !message.model || !apiKey) {
+      if (!["copilot"].includes(message.provider) || !message.model || !apiKey) {
         ws.send(JSON.stringify({ type: "error", message: "Choose a provider and model, and enter its API key or configure its server environment variable." }));
         return;
       }

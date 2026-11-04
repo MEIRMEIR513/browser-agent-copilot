@@ -40,13 +40,32 @@ Gemini tool calls are replayed with their original provider metadata, including 
 
 ## Providers and model discovery
 
-Select a provider, enter its API key, and use **Discover models**. The app queries the provider's model catalog rather than maintaining a fixed model list.
+This project now uses the **GitHub Copilot SDK** for AI model integration. The app queries the provider's model catalog rather than maintaining a fixed model list.
 
 | Provider | Key | Discovery / inference |
 | --- | --- | --- |
-| GitHub Models | `GITHUB_MODELS_API_KEY` (or `GITHUB_TOKEN`) or UI input | GitHub Models catalog and OpenAI-compatible inference API |
-| Google Gemini | `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) or UI input | Gemini `models` API and `generateContent` function calling |
-| Groq | `GROQ_API_KEY` or UI input | Groq `/models` and OpenAI-compatible chat completions |
+| GitHub Copilot | GitHub OAuth token or `COPILOT_GITHUB_TOKEN` | Copilot SDK with GitHub Copilot subscription or BYOK |
+
+### GitHub OAuth Setup
+
+To use GitHub OAuth authentication:
+
+1. Create a GitHub OAuth App at https://github.com/settings/developers
+2. Set the **Homepage URL** to your app's URL (e.g., `http://localhost:3001`)
+3. Set the **Authorization callback URL** to `http://localhost:3001/auth/callback` (or your production URL)
+4. Copy the **Client ID** and generate a **Client Secret**
+5. Set environment variables:
+   ```bash
+   export GITHUB_CLIENT_ID="your_client_id"
+   export GITHUB_CLIENT_SECRET="your_client_secret"
+   export OAUTH_CALLBACK_URL="http://localhost:3001/auth/callback"
+   ```
+6. Start the app and click "Sign in with GitHub" in the UI
+
+Alternatively, you can use a GitHub Personal Access Token directly:
+```bash
+export COPILOT_GITHUB_TOKEN="gho_your_token_here"
+```
 
 The exact models available depend on each provider's account, API access, regional availability, and current catalog. The UI or terminal lists models returned by that provider, but some may not support chat or function/tool calling; those models cannot run browser actions and provider errors are shown in the UI or terminal. Vision screenshots are sent to models identified as image-capable; all models receive the current page's text and interactive-element list.
 

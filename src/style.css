@@ -33,6 +33,8 @@ button:disabled{opacity:.42;cursor:not-allowed}
 .model-row{display:grid;grid-template-columns:1fr auto;align-items:end;gap:10px;margin-top:14px}
 .model-row label{margin-bottom:0}
 .compact{margin-bottom:0}
+.github-auth-section{display:flex;align-items:center;gap:10px;margin:12px 0}
+.github-auth-section .auth-success{color:#c4f06d;font-size:11px}
 .muted{color:#798493;font-size:10px;line-height:1.5;margin:12px 0 0}
 .notice{color:#ffb8ad;font-size:11px;line-height:1.5;margin:10px 0 0}
 .browser-panel{min-height:340px}

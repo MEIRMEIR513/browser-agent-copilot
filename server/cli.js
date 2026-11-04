@@ -57,11 +57,14 @@ async function chooseConfiguration(rl) {
 
   let apiKey = resolveApiKey(provider.id);
   if (apiKey) {
-    const useEnvironmentKey = (await ask(rl, "נמצא מפתח בסביבת ההרצה. להשתמש בו? [כ/ל]: ")).trim().toLowerCase();
+    const useEnvironmentKey = (await ask(rl, "נמצא מפתח GitHub בסביבת ההרצה. להשתמש בו? [כ/ל]: ")).trim().toLowerCase();
     if (!["כ", "כן", "y", "yes"].includes(useEnvironmentKey)) apiKey = "";
   }
-  if (!apiKey) apiKey = await readSecret("מפתח API (ההקלדה מוסתרת): ", rl);
-  if (!apiKey) throw new Error("לא הוזן מפתח API.");
+  if (!apiKey) {
+    stdout.write("הזן GitHub Personal Access Token (gho_...) או תשתמש ב-GitHub OAuth באמצעות הממשק הגרפי.\n");
+    apiKey = await readSecret("מפתח GitHub (ההקלדה מוסתרת): ", rl);
+  }
+  if (!apiKey) throw new Error("לא הוזן מפתח GitHub.");
 
   stdout.write("טוען רשימת מודלים...\n");
   const models = await discoverModels(provider.id, apiKey);
