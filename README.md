@@ -36,6 +36,12 @@ On Linux x64, `@sparticuz/chromium` supplies a packaged headless browser and its
 
 Type tasks at `אתה>`. During a run, another line is treated as an extra instruction; answer `כן` only when you approve a consequential action. Use `/עצור` to stop the current run, `/עזרה` for terminal commands, or `/יציאה` to close the agent. The provider key is only held in memory for the current run.
 
+## How it works with Devin CLI
+
+The agent uses a custom Devin skill (`@skills:browser-agent`) that teaches Devin how to plan browser actions. Devin receives the current browser state (URL, title, page text, interactive elements) and outputs actions in a numbered list format. The agent then executes these actions in the actual Playwright browser.
+
+This allows Devin (which is a code-focused agent) to work as a planner for browser automation tasks without needing direct browser tools.
+
 ## Providers and model discovery
 
 This project uses **Devin CLI** for AI model integration. The app queries the provider's model catalog rather than maintaining a fixed model list.

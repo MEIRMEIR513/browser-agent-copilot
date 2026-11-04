@@ -8,7 +8,7 @@ export class DevinProvider {
 
   async sendMessage(prompt, snapshot = null) {
     return new Promise((resolve, reject) => {
-      let fullPrompt = `You are a browser agent assistant. I will provide you with the current browser state and your task.\n\n`;
+      let fullPrompt = `@skills:browser-agent\n\n`;
       fullPrompt += `Your task: ${prompt}\n\n`;
 
       if (snapshot) {
@@ -21,14 +21,6 @@ export class DevinProvider {
           fullPrompt += `${i + 1}. ${el.tag} - ${el.label} (selector: ${el.selector})\n`;
         });
       }
-
-      fullPrompt += `\n\nIMPORTANT: You MUST output the specific browser actions needed. Do NOT just analyze or describe the page.\n`;
-      fullPrompt += `Format your response as a numbered list of actions like:\n`;
-      fullPrompt += `1. navigate(url)\n`;
-      fullPrompt += `2. click(selector)\n`;
-      fullPrompt += `3. type_text(selector, text)\n`;
-      fullPrompt += `4. scroll_page(direction)\n\n`;
-      fullPrompt += `I will execute these actions in the actual browser. Only output the action list, no additional explanations.\n`;
 
       const args = ["-p", fullPrompt];
 
