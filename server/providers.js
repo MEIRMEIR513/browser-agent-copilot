@@ -69,7 +69,7 @@ const browserTools = [
   {
     name: "scroll_page",
     description: "Scroll the page by a relative amount.",
-    parameters: { type: "object", properties: { direction: { type: "string", enum: ["up", "down"] }, amount: { type: "integer" } }, required: ["direction" }
+    parameters: { type: "object", properties: { direction: { type: "string", enum: ["up", "down"] }, amount: { type: "integer" } }, required: ["direction"] }
   }
 ];
 
