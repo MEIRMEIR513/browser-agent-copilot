@@ -67,9 +67,10 @@ async function chooseConfiguration(rl) {
     stdout.write(`  ${index + 1}. ${model.name}${model.vision ? " (תומך בתמונה)" : ""}\n`);
   });
   const modelAnswer = (await ask(rl, "מספר מודל (השאר ריק לברירת המחדל): ")).trim();
-  if (!modelAnswer) {
-    // Use default model
-    return { provider: provider.id, model: "default", vision: false, apiKey: "" };
+  if (!modelAnswer || modelAnswer === "") {
+    // Use default model (first in list)
+    const model = models[0];
+    return { provider: provider.id, model: model.id, vision: model.vision || false, apiKey: "" };
   }
   const model = models[Number(modelAnswer) - 1];
   if (!model) throw new Error("בחירת המודל אינה תקינה.");
