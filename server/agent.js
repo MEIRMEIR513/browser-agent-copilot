@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { WebSocket } from "ws";
-import { CopilotProvider } from "./copilot-provider.js";
+import { DevinProvider } from "./devin-provider.js";
 import { shouldSendScreenshot } from "./providers.js";
 
 const systemPrompt = `You are a careful browser agent operating one real, persistent headless browser tab. The user can see its current page in the app and may send new instructions while you work.
@@ -19,7 +19,7 @@ export class AgentRun {
     this.waitingApproval = null;
     this.pendingUserMessages = [];
     this.running = false;
-    this.copilotProvider = null;
+    this.devinProvider = null;
   }
 
   send(type, data = {}) {
@@ -59,86 +59,9 @@ export class AgentRun {
     return true;
   }
 
-  async initializeCopilot() {
-    const apiKey = this.config.apiKey;
-    this.copilotProvider = new CopilotProvider(apiKey);
-
-    // Create browser handlers that the Copilot SDK tools will use
-    const browserHandlers = {
-      navigate: async (url) => {
-        const result = await this.browser.execute(
-          "navigate",
-          { url },
-          (action) => this.requestApproval(action),
-          this.controller.signal
-        );
-        const [snapshot, currentScreenshot] = await Promise.all([
-          this.browser.snapshot(),
-          this.browser.screenshot()
-        ]);
-        this.send("browser_update", { snapshot, screenshot: currentScreenshot });
-        this.send("action", { name: "navigate", args: { url } });
-        this.send("tool_result", { name: "navigate", content: result });
-        return result;
-      },
-      inspectPage: async () => {
-        const snapshot = await this.browser.snapshot();
-        this.send("action", { name: "inspect_page", args: {} });
-        this.send("tool_result", { name: "inspect_page", content: JSON.stringify(snapshot) });
-        return JSON.stringify(snapshot);
-      },
-      click: async (selector) => {
-        const result = await this.browser.execute(
-          "click",
-          { selector },
-          (action) => this.requestApproval(action),
-          this.controller.signal
-        );
-        const [snapshot, currentScreenshot] = await Promise.all([
-          this.browser.snapshot(),
-          this.browser.screenshot()
-        ]);
-        this.send("browser_update", { snapshot, screenshot: currentScreenshot });
-        this.send("action", { name: "click", args: { selector } });
-        this.send("tool_result", { name: "click", content: result });
-        return result;
-      },
-      typeText: async (selector, text, submit) => {
-        const result = await this.browser.execute(
-          "type_text",
-          { selector, text, submit },
-          (action) => this.requestApproval(action),
-          this.controller.signal
-        );
-        const [snapshot, currentScreenshot] = await Promise.all([
-          this.browser.snapshot(),
-          this.browser.screenshot()
-        ]);
-        this.send("browser_update", { snapshot, screenshot: currentScreenshot });
-        this.send("action", { name: "type_text", args: { selector, text, submit } });
-        this.send("tool_result", { name: "type_text", content: result });
-        return result;
-      },
-      scrollPage: async (direction, amount) => {
-        const result = await this.browser.execute(
-          "scroll_page",
-          { direction, amount },
-          (action) => this.requestApproval(action),
-          this.controller.signal
-        );
-        const [snapshot, currentScreenshot] = await Promise.all([
-          this.browser.snapshot(),
-          this.browser.screenshot()
-        ]);
-        this.send("browser_update", { snapshot, screenshot: currentScreenshot });
-        this.send("action", { name: "scroll_page", args: { direction, amount } });
-        this.send("tool_result", { name: "scroll_page", content: result });
-        return result;
-      }
-    };
-
-    await this.copilotProvider.initialize(browserHandlers);
-    await this.copilotProvider.createSession(this.config.model);
+  async initializeDevin() {
+    this.devinProvider = new DevinProvider();
+    this.devinProvider.setModel(this.config.model);
   }
 
   async run(initialMessage) {
@@ -155,9 +78,9 @@ export class AgentRun {
     this.send("status", { status: "working" });
 
     try {
-      // Initialize Copilot provider on first run
-      if (!this.copilotProvider) {
-        await this.initializeCopilot();
+      // Initialize Devin provider on first run
+      if (!this.devinProvider) {
+        await this.initializeDevin();
       }
 
       for (let turn = 0; turn < 24 && !this.stopped; turn += 1) {
@@ -180,7 +103,7 @@ export class AgentRun {
           .map(m => `${m.role}: ${m.content}`)
           .join("\n\n");
 
-        const result = await this.copilotProvider.sendMessage(fullPrompt, screenshot);
+        const result = await this.devinProvider.sendMessage(fullPrompt, snapshot);
 
         const assistantMessage = { role: "assistant", content: result.text };
         if (result.toolCalls.length) assistantMessage.tool_calls = result.toolCalls;
@@ -194,22 +117,53 @@ export class AgentRun {
           return;
         }
 
-        // Note: Copilot SDK handles tool execution internally via the handlers we provided
-        // The handlers already send action/tool_result events to the UI
-        // We just need to update the message history with tool results
+        // Execute tool calls
         for (const call of result.toolCalls) {
           if (this.stopped) break;
           const name = call.function?.name;
-          const args = JSON.parse(call.function.arguments || "{}");
-
-          // The tool was already executed by the handler, we just need to record it in messages
-          // The handler sends the actual result back to Copilot SDK
-          this.messages.push({
-            role: "tool",
-            tool_call_id: call.id,
-            name,
-            content: "Tool executed"
-          });
+          if (!getToolNames().includes(name)) {
+            const content = `Rejected unsupported tool: ${name}`;
+            this.messages.push({ role: "tool", tool_call_id: call.id, content });
+            this.send("tool_result", { name, content });
+            continue;
+          }
+          let args;
+          try {
+            args = JSON.parse(call.function.arguments || "{}");
+            if (!args || typeof args !== "object" || Array.isArray(args)) {
+              throw new Error("Tool arguments must be a JSON object.");
+            }
+          } catch (error) {
+            const content = `Rejected invalid tool arguments: ${error.message}`;
+            this.messages.push({
+              role: "tool",
+              tool_call_id: call.id,
+              name: call.providerName ?? name,
+              content
+            });
+            this.send("tool_result", { name, content });
+            continue;
+          }
+          this.send("action", { name, args });
+          let content;
+          try {
+            content = await this.browser.execute(
+              name,
+              args,
+              (action) => this.requestApproval(action),
+              this.controller.signal
+            );
+            const [currentSnapshot, currentScreenshot] = await Promise.all([
+              this.browser.snapshot(),
+              this.browser.screenshot()
+            ]);
+            this.send("browser_update", { snapshot: currentSnapshot, screenshot: currentScreenshot });
+          } catch (error) {
+            content = `Browser action failed: ${error.message}`;
+          }
+          if (this.stopped) break;
+          this.messages.push({ role: "tool", tool_call_id: call.id, name, content });
+          this.send("tool_result", { name, content });
         }
       }
 
@@ -233,9 +187,10 @@ export class AgentRun {
   }
 
   async destroy() {
-    if (this.copilotProvider) {
-      await this.copilotProvider.destroy();
-      this.copilotProvider = null;
-    }
+    this.devinProvider = null;
   }
+}
+
+function getToolNames() {
+  return ["navigate", "inspect_page", "click", "type_text", "scroll_page"];
 }

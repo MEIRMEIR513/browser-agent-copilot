@@ -2,7 +2,7 @@ import readline from "node:readline";
 import { stdin, stdout } from "node:process";
 import { AgentRun } from "./agent.js";
 import { BrowserSession } from "./browser.js";
-import { discoverModels, providers, resolveApiKey } from "./providers.js";
+import { discoverModels, providers } from "./providers.js";
 
 function ask(rl, question) {
   return new Promise((resolve) => rl.question(question, resolve));
@@ -55,20 +55,12 @@ async function chooseConfiguration(rl) {
   const provider = providers[Number(providerAnswer) - 1];
   if (!provider) throw new Error("בחירת הספק אינה תקינה.");
 
-  let apiKey = resolveApiKey(provider.id);
-  if (apiKey) {
-    const useEnvironmentKey = (await ask(rl, "נמצא מפתח GitHub בסביבת ההרצה. להשתמש בו? [כ/ל]: ")).trim().toLowerCase();
-    if (!["כ", "כן", "y", "yes"].includes(useEnvironmentKey)) apiKey = "";
-  }
-  if (!apiKey) {
-    stdout.write("הזן GitHub Personal Access Token (gho_...) או תשתמש ב-GitHub OAuth באמצעות הממשק הגרפי.\n");
-    apiKey = await readSecret("מפתח GitHub (ההקלדה מוסתרת): ", rl);
-  }
-  if (!apiKey) throw new Error("לא הוזן מפתח GitHub.");
+  stdout.write("Devin CLI חייב להיות מותקן ומאומת.\n");
+  stdout.write("ודא שהרצת 'devin auth login' לפני השימוש.\n");
 
   stdout.write("טוען רשימת מודלים...\n");
-  const models = await discoverModels(provider.id, apiKey);
-  if (!models.length) throw new Error("לא נמצאו מודלים זמינים למפתח הזה.");
+  const models = await discoverModels(provider.id, "");
+  if (!models.length) throw new Error("לא נמצאו מודלים זמינים.");
   stdout.write("\nמודלים זמינים:\n");
   models.forEach((model, index) => {
     stdout.write(`  ${index + 1}. ${model.name}${model.vision ? " (תומך בתמונה)" : ""}\n`);
@@ -76,7 +68,7 @@ async function chooseConfiguration(rl) {
   const modelAnswer = (await ask(rl, "מספר מודל: ")).trim();
   const model = models[Number(modelAnswer) - 1];
   if (!model) throw new Error("בחירת המודל אינה תקינה.");
-  return { provider: provider.id, model: model.id, vision: model.vision, apiKey };
+  return { provider: provider.id, model: model.id, vision: model.vision, apiKey: "" };
 }
 
 async function main() {

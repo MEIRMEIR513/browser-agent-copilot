@@ -7,7 +7,7 @@ function App() {
   const feedRef = useRef(null);
   const [socketReady, setSocketReady] = useState(false);
   const [providers, setProviders] = useState([]);
-  const [provider, setProvider] = useState("copilot");
+  const [provider, setProvider] = useState("devin");
   const [apiKey, setApiKey] = useState("");
   const [models, setModels] = useState([]);
   const [model, setModel] = useState("");
@@ -20,19 +20,6 @@ function App() {
   const [screenshot, setScreenshot] = useState("");
   const [approval, setApproval] = useState(null);
   const [notice, setNotice] = useState("");
-  const [githubToken, setGithubToken] = useState("");
-
-  useEffect(() => {
-    // Check if token is in URL (from OAuth callback)
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
-    if (token) {
-      setGithubToken(token);
-      setApiKey(token);
-      // Clear token from URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
 
   useEffect(() => {
     const scheme = location.protocol === "https:" ? "wss:" : "ws:";
@@ -122,32 +109,8 @@ function App() {
               <label>Provider<select value={provider} onChange={(event) => { setProvider(event.target.value); setApiKey(""); setModels([]); setModel(""); setConfigured(false); }}>
                 {providers.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
               </select></label>
-              {provider === "copilot" && (
-                <div className="github-auth-section">
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={async () => {
-                      try {
-                        const response = await fetch("/auth/github");
-                        const data = await response.json();
-                        if (data.authUrl) {
-                          window.location.href = data.authUrl;
-                        } else {
-                          setNotice(data.error || "Failed to initiate GitHub OAuth");
-                        }
-                      } catch (error) {
-                        setNotice(error.message);
-                      }
-                    }}
-                  >
-                    🔗 Sign in with GitHub
-                  </button>
-                  {githubToken && <span className="auth-success">✓ Connected</span>}
-                </div>
-              )}
-              <label>API key<input type="password" autoComplete="off" value={apiKey} onChange={(event) => { setApiKey(event.target.value); setConfigured(false); }} placeholder={providers.find((item) => item.id === provider)?.hasEnvironmentKey ? "Optional · using configured server key" : "Used for this session only"} /></label>
-              <button className="secondary-button" disabled={(!apiKey && !providers.find((item) => item.id === provider)?.hasEnvironmentKey) || discovering}>{discovering ? "Loading models…" : "Discover models"}</button>
+              <p className="muted">Devin CLI must be installed and authenticated. Run <code>devin auth login</code> to authenticate.</p>
+              <button className="secondary-button" disabled={discovering}>{discovering ? "Loading models…" : "Discover models"}</button>
             </form>
             {models.length > 0 && <div className="model-row"><label>Model<select value={model} onChange={(event) => { setModel(event.target.value); setConfigured(false); }}>
               {models.map((item) => <option value={item.id} key={item.id}>{item.name}{item.vision ? " · vision" : ""}</option>)}

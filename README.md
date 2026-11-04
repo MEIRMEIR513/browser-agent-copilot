@@ -36,38 +36,35 @@ On Linux x64, `@sparticuz/chromium` supplies a packaged headless browser and its
 
 Type tasks at `אתה>`. During a run, another line is treated as an extra instruction; answer `כן` only when you approve a consequential action. Use `/עצור` to stop the current run, `/עזרה` for terminal commands, or `/יציאה` to close the agent. The provider key is only held in memory for the current run.
 
-Gemini tool calls are replayed with their original provider metadata, including `thought_signature`, as required by Gemini's function-calling API.
-
 ## Providers and model discovery
 
-This project now uses the **GitHub Copilot SDK** for AI model integration. The app queries the provider's model catalog rather than maintaining a fixed model list.
+This project uses **Devin CLI** for AI model integration. The app queries the provider's model catalog rather than maintaining a fixed model list.
 
 | Provider | Key | Discovery / inference |
 | --- | --- | --- |
-| GitHub Copilot | GitHub OAuth token or `COPILOT_GITHUB_TOKEN` | Copilot SDK with GitHub Copilot subscription or BYOK |
+| Devin CLI | Requires Devin CLI installation and authentication | Devin CLI with Free or paid plan |
 
-### GitHub OAuth Setup
+### Devin CLI Setup
 
-To use GitHub OAuth authentication:
+To use Devin CLI:
 
-1. Create a GitHub OAuth App at https://github.com/settings/developers
-2. Set the **Homepage URL** to your app's URL (e.g., `http://localhost:3001`)
-3. Set the **Authorization callback URL** to `http://localhost:3001/auth/callback` (or your production URL)
-4. Copy the **Client ID** and generate a **Client Secret**
-5. Set environment variables:
+1. Install Devin CLI from https://devin.ai/cli
+2. Authenticate with Devin:
    ```bash
-   export GITHUB_CLIENT_ID="your_client_id"
-   export GITHUB_CLIENT_SECRET="your_client_secret"
-   export OAUTH_CALLBACK_URL="http://localhost:3001/auth/callback"
+   devin auth login
    ```
-6. Start the app and click "Sign in with GitHub" in the UI
+3. The Free plan includes limited usage. For more features, consider upgrading to Pro ($20/month).
 
-Alternatively, you can use a GitHub Personal Access Token directly:
-```bash
-export COPILOT_GITHUB_TOKEN="gho_your_token_here"
-```
+### Models Available
 
-The exact models available depend on each provider's account, API access, regional availability, and current catalog. The UI or terminal lists models returned by that provider, but some may not support chat or function/tool calling; those models cannot run browser actions and provider errors are shown in the UI or terminal. Vision screenshots are sent to models identified as image-capable; all models receive the current page's text and interactive-element list.
+Devin CLI supports multiple models:
+- **Adaptive** (Recommended) - Automatically selects the best model
+- **SWE-2** - Cognition's coding model (free for subscribers through Nov 30, 2026)
+- **SWE-1.6** - Previous version
+- **Claude Opus/Sonnet** - Anthropic models
+- **GPT-4/GPT-4o** - OpenAI models
+
+The exact models available depend on your Devin subscription plan. Free users have limited model availability. The UI or terminal lists models returned by Devin CLI. Vision screenshots are sent to models identified as image-capable; all models receive the current page's text and interactive-element list.
 
 ## Browser behavior and safety
 

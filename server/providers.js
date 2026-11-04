@@ -1,17 +1,16 @@
-import { CopilotProvider } from "./copilot-provider.js";
+import { modelSupportsVision } from "./safety.js";
 
 export const providers = [
-  { id: "copilot", name: "GitHub Copilot" }
+  { id: "devin", name: "Devin CLI" }
 ];
 
 const environmentKeyNames = {
-  copilot: "COPILOT_GITHUB_TOKEN"
+  devin: "DEVIN_AUTH_TOKEN"
 };
 
 export function resolveApiKey(provider, suppliedKey = "") {
   const uiKey = typeof suppliedKey === "string" ? suppliedKey.trim() : "";
-  return uiKey || process.env[environmentKeyNames[provider]] ||
-    (provider === "copilot" ? process.env.GITHUB_TOKEN : "");
+  return uiKey || process.env[environmentKeyNames[provider]] || "";
 }
 
 export function providersWithKeyStatus() {
@@ -22,27 +21,62 @@ export function providersWithKeyStatus() {
 }
 
 export async function discoverModels(provider, apiKey) {
-  if (provider === "copilot") {
-    // Copilot SDK handles model discovery internally
-    // Return a placeholder list that will be replaced by the SDK
+  if (provider === "devin") {
+    // Devin CLI has its own model discovery
+    // Return common models that Devin supports
     return [
-      { id: "auto", name: "Auto (Recommended)" },
-      { id: "gpt-4.1", name: "GPT-4.1" },
-      { id: "gpt-4o", name: "GPT-4o" },
-      { id: "gpt-4o-mini", name: "GPT-4o Mini" },
-      { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet" }
+      { id: "adaptive", name: "Adaptive (Recommended)" },
+      { id: "swe-2", name: "SWE-2" },
+      { id: "swe-1.6", name: "SWE-1.6" },
+      { id: "opus", name: "Claude Opus" },
+      { id: "sonnet", name: "Claude Sonnet" },
+      { id: "gpt-4", name: "GPT-4" },
+      { id: "gpt-4o", name: "GPT-4o" }
     ];
   }
   throw new Error("Unknown model provider.");
 }
 
+const browserTools = [
+  {
+    name: "navigate",
+    description: "Open an http or https URL in the current browser tab.",
+    parameters: { type: "object", properties: { url: { type: "string" } }, required: ["url"] }
+  },
+  {
+    name: "inspect_page",
+    description: "Read the current page title, URL, visible text, and interactive element selectors.",
+    parameters: { type: "object", properties: {} }
+  },
+  {
+    name: "click",
+    description: "Click an element using a CSS selector from the current page.",
+    parameters: { type: "object", properties: { selector: { type: "string" } }, required: ["selector"] }
+  },
+  {
+    name: "type_text",
+    description: "Fill or type text into a visible field using a CSS selector. Never enter secrets unless the user explicitly provided them in chat.",
+    parameters: {
+      type: "object",
+      properties: {
+        selector: { type: "string" },
+        text: { type: "string" },
+        submit: { type: "boolean", description: "If true, submits the nearest form and requires user approval." }
+      },
+      required: ["selector", "text"]
+    }
+  },
+  {
+    name: "scroll_page",
+    description: "Scroll the page by a relative amount.",
+    parameters: { type: "object", properties: { direction: { type: "string", enum: ["up", "down"] }, amount: { type: "integer" } }, required: ["direction" }
+  }
+];
+
 export function getToolNames() {
-  return ["navigate", "inspect_page", "click", "type_text", "scroll_page"];
+  return browserTools.map((tool) => tool.name);
 }
 
 export function shouldSendScreenshot(provider, model, catalogVision = false) {
-  // Copilot SDK handles vision automatically for supported models
-  return catalogVision || ["gpt-4o", "gpt-4o-mini", "claude-3-5-sonnet"].includes(model);
+  return catalogVision || modelSupportsVision(provider, model);
 }
-
-export { CopilotProvider };
