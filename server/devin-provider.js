@@ -107,8 +107,21 @@ export class DevinProvider {
         });
       }
 
+      // Look for navigate with URL anywhere in the line
+      const urlMatch = line.match(/navigate\s*\(\s*(https?:\/\/[^\s)]+)\s*\)/i);
+      if (urlMatch) {
+        toolCalls.push({
+          id: `devin-${Date.now()}-${toolCalls.length}`,
+          type: "function",
+          function: {
+            name: "navigate",
+            arguments: JSON.stringify({ url: urlMatch[1] })
+          }
+        });
+      }
+
       // Also look for: "navigate to URL" format
-      const navMatch = line.match(/navigate\s+(?:to\s+)?(.+)/i);
+      const navMatch = line.match(/navigate\s+(?:to\s+)?(https?:\/\/[^\s]+)/i);
       if (navMatch) {
         toolCalls.push({
           id: `devin-${Date.now()}-${toolCalls.length}`,
