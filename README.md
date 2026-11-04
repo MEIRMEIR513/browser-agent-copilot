@@ -57,16 +57,13 @@ To use Devin CLI:
 
 ### Models Available
 
-Devin CLI Free plan includes:
-- **Adaptive** (Recommended) - Automatically selects the best model
-- **SWE-1.6** - Previous version of Cognition's coding model
+Devin CLI automatically selects the best available model based on your subscription plan:
 
-Paid plans (Pro $20/month) unlock additional models:
-- **SWE-2** - Latest Cognition coding model
-- **Claude Opus/Sonnet** - Anthropic models
-- **GPT-4/GPT-4o** - OpenAI models
+- **Free plan** - Uses a default model with limited capabilities
+- **Pro ($20/month)** - Access to frontier models (SWE-2, Claude, GPT-4, Gemini, etc.)
+- **Max ($200/month)** - Higher quotas and all frontier models
 
-The exact models available depend on your Devin subscription plan. Free users have limited model availability. The UI or terminal lists models returned by Devin CLI. Vision screenshots are sent to models identified as image-capable; all models receive the current page's text and interactive-element list.
+The browser agent will use Devin's default model for your plan. You don't need to manually select a model unless you have a paid plan and want to choose a specific one. Vision screenshots are sent to models identified as image-capable; all models receive the current page's text and interactive-element list.
 
 ## Browser behavior and safety
 

@@ -63,12 +63,11 @@ socketServer.on("connection", (ws) => {
       return;
     }
     if (message.type === "configure") {
-      const apiKey = resolveApiKey(message.provider, message.apiKey);
       if (!["devin"].includes(message.provider) || !message.model) {
         ws.send(JSON.stringify({ type: "error", message: "Choose a provider and model. Devin CLI must be installed and authenticated." }));
         return;
       }
-      config = { provider: message.provider, model: message.model, apiKey, vision: Boolean(message.vision) };
+      config = { provider: message.provider, model: message.model, apiKey: "", vision: Boolean(message.vision) };
       ws.send(JSON.stringify({ type: "configured", provider: config.provider, model: config.model }));
       return;
     }

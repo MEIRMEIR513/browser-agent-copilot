@@ -73,6 +73,8 @@ function App() {
       if (!response.ok) throw new Error(result.error);
       setModels(result.models);
       setModel(result.models[0]?.id ?? "");
+      // Auto-configure after discovering
+      configure();
       if (!result.models.length) setNotice("No models available for this key.");
     } catch (error) {
       setNotice(error.message);
@@ -83,6 +85,10 @@ function App() {
 
   function configure() {
     setNotice("");
+    if (!model) {
+      setNotice("Please click 'Connect' to load the default model.");
+      return;
+    }
     send({ type: "configure", provider, model, apiKey, vision: models.find((item) => item.id === model)?.vision });
   }
 
@@ -110,11 +116,8 @@ function App() {
                 {providers.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
               </select></label>
               <p className="muted">Devin CLI must be installed and authenticated. Run <code>devin auth login</code> to authenticate.</p>
-              <button className="secondary-button" disabled={discovering}>{discovering ? "Loading models…" : "Discover models"}</button>
+              <button className="secondary-button" disabled={discovering}>{discovering ? "Loading models…" : "Connect"}</button>
             </form>
-            {models.length > 0 && <div className="model-row"><label>Model<select value={model} onChange={(event) => { setModel(event.target.value); setConfigured(false); }}>
-              {models.map((item) => <option value={item.id} key={item.id}>{item.name}{item.vision ? " · vision" : ""}</option>)}
-            </select></label><button className="primary-button compact" disabled={!model || !socketReady} onClick={configure}>{configured ? "Connected" : "Connect"}</button></div>}
             {notice && <p className="notice">{notice}</p>}
             <p className="muted">UI keys stay in memory. You can also configure provider keys on the server via environment variables.</p>
           </section>

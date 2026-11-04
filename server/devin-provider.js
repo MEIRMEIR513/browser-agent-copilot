@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 
 export class DevinProvider {
   constructor() {
-    this.model = "adaptive";
+    this.model = null; // Let Devin use its default model
     this.permissionMode = "normal";
   }
 
@@ -14,18 +14,16 @@ export class DevinProvider {
         fullPrompt = `${prompt}\n\nCurrent browser state:\n${JSON.stringify(snapshot)}`;
       }
 
-      const args = [];
+      const args = ["-p", fullPrompt];
 
-      if (this.model) {
-        args.push("--model", this.model);
+      // Only add model flag if explicitly set and not default
+      if (this.model && this.model !== "adaptive") {
+        args.unshift("--model", this.model);
       }
 
       if (this.permissionMode) {
-        args.push("--permission-mode", this.permissionMode);
+        args.unshift("--permission-mode", this.permissionMode);
       }
-
-      args.push("-p");
-      args.push(fullPrompt);
 
       const devin = spawn("devin", args, {
         shell: false

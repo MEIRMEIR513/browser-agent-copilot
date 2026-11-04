@@ -66,7 +66,11 @@ async function chooseConfiguration(rl) {
   models.forEach((model, index) => {
     stdout.write(`  ${index + 1}. ${model.name}${model.vision ? " (תומך בתמונה)" : ""}\n`);
   });
-  const modelAnswer = (await ask(rl, "מספר מודל: ")).trim();
+  const modelAnswer = (await ask(rl, "מספר מודל (השאר ריק לברירת המחדל): ")).trim();
+  if (!modelAnswer) {
+    // Use default model
+    return { provider: provider.id, model: "default", vision: false, apiKey: "" };
+  }
   const model = models[Number(modelAnswer) - 1];
   if (!model) throw new Error("בחירת המודל אינה תקינה.");
   return { provider: provider.id, model: model.id, vision: model.vision, apiKey: "" };

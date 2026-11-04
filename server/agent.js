@@ -61,7 +61,9 @@ export class AgentRun {
 
   async initializeDevin() {
     this.devinProvider = new DevinProvider();
-    this.devinProvider.setModel(this.config.model);
+    if (this.config.model && this.config.model !== "default") {
+      this.devinProvider.setModel(this.config.model);
+    }
   }
 
   async run(initialMessage) {

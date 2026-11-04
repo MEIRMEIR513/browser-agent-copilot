@@ -22,11 +22,10 @@ export function providersWithKeyStatus() {
 
 export async function discoverModels(provider, apiKey) {
   if (provider === "devin") {
-    // Devin CLI has its own model discovery
-    // Free plan has limited model availability
+    // Devin CLI will use its default model based on your plan
+    // Free plan users get a default model automatically
     return [
-      { id: "adaptive", name: "Adaptive (Recommended)" },
-      { id: "swe-1.6", name: "SWE-1.6 (Free plan)" }
+      { id: "default", name: "Default (based on your plan)" }
     ];
   }
   throw new Error("Unknown model provider.");
