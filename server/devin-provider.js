@@ -22,12 +22,13 @@ export class DevinProvider {
         });
       }
 
-      fullPrompt += `\n\nBased on this information, tell me what browser actions you would take. Format your response as a list of actions like:\n`;
+      fullPrompt += `\n\nIMPORTANT: You MUST output the specific browser actions needed. Do NOT just analyze or describe the page.\n`;
+      fullPrompt += `Format your response as a numbered list of actions like:\n`;
       fullPrompt += `1. navigate(url)\n`;
       fullPrompt += `2. click(selector)\n`;
       fullPrompt += `3. type_text(selector, text)\n`;
       fullPrompt += `4. scroll_page(direction)\n\n`;
-      fullPrompt += `I will execute these actions in the actual browser.\n`;
+      fullPrompt += `I will execute these actions in the actual browser. Only output the action list, no additional explanations.\n`;
 
       const args = ["-p", fullPrompt];
 
