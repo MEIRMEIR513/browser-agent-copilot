@@ -14,18 +14,21 @@ export class DevinProvider {
         fullPrompt = `${prompt}\n\nCurrent browser state:\n${JSON.stringify(snapshot)}`;
       }
 
-      const args = ["-p", fullPrompt];
+      const args = [];
 
       if (this.model) {
-        args.unshift("--model", this.model);
+        args.push("--model", this.model);
       }
 
       if (this.permissionMode) {
-        args.unshift("--permission-mode", this.permissionMode);
+        args.push("--permission-mode", this.permissionMode);
       }
 
+      args.push("-p");
+      args.push(fullPrompt);
+
       const devin = spawn("devin", args, {
-        shell: true
+        shell: false
       });
 
       let output = "";
