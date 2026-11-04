@@ -57,6 +57,7 @@ async function chooseConfiguration(rl) {
 
   stdout.write("Devin CLI חייב להיות מותקן ומאומת.\n");
   stdout.write("ודא שהרצת 'devin auth login' לפני השימוש.\n");
+  stdout.write("ה-Free plan כולל גישה מוגבלת למודלים.\n");
 
   stdout.write("טוען רשימת מודלים...\n");
   const models = await discoverModels(provider.id, "");

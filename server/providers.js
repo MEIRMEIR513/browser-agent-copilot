@@ -23,15 +23,10 @@ export function providersWithKeyStatus() {
 export async function discoverModels(provider, apiKey) {
   if (provider === "devin") {
     // Devin CLI has its own model discovery
-    // Return common models that Devin supports
+    // Free plan has limited model availability
     return [
       { id: "adaptive", name: "Adaptive (Recommended)" },
-      { id: "swe-2", name: "SWE-2" },
-      { id: "swe-1.6", name: "SWE-1.6" },
-      { id: "opus", name: "Claude Opus" },
-      { id: "sonnet", name: "Claude Sonnet" },
-      { id: "gpt-4", name: "GPT-4" },
-      { id: "gpt-4o", name: "GPT-4o" }
+      { id: "swe-1.6", name: "SWE-1.6 (Free plan)" }
     ];
   }
   throw new Error("Unknown model provider.");

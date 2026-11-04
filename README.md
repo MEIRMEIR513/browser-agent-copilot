@@ -57,10 +57,12 @@ To use Devin CLI:
 
 ### Models Available
 
-Devin CLI supports multiple models:
+Devin CLI Free plan includes:
 - **Adaptive** (Recommended) - Automatically selects the best model
-- **SWE-2** - Cognition's coding model (free for subscribers through Nov 30, 2026)
-- **SWE-1.6** - Previous version
+- **SWE-1.6** - Previous version of Cognition's coding model
+
+Paid plans (Pro $20/month) unlock additional models:
+- **SWE-2** - Latest Cognition coding model
 - **Claude Opus/Sonnet** - Anthropic models
 - **GPT-4/GPT-4o** - OpenAI models
 
